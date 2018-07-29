@@ -4,14 +4,27 @@
         <title>WebSocket demo</title>
     </head>
     <body>
+        <input id="row" type="number">
+        <input id="col" type="number">
         <button>Click me!</button>
         <script>
             var ws = new WebSocket("ws://127.0.0.1:8765/");
             var messages = document.createElement('ul');
             var button = document.querySelector('button');
+            var row = document.querySelector('#row');
+            var col = document.querySelector('#col');
 
             button.onclick = function(event) {
-                ws.send(JSON.stringify({action: 'plus'}));
+                var data = {
+                    'cell-clicked': {
+                        'board-id': 1,
+                        'cell': {
+                            'r': row.value,
+                            'c': col.value
+                        }
+                    }
+                };
+                ws.send(JSON.stringify(data));
             };
 
             ws.onmessage = function (event) {
