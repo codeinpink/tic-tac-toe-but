@@ -49,20 +49,20 @@ async def update_score(x_points, o_points):
             'O': score['O']
         }
     }
-    await player1.send(json.dumps(data))
-    await player2.send(json.dumps(data))
 
-async def end_match(game):
+    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
+
+async def end_match(board_id, game):
     global player1, player2
-    winner = game.winner if game.winner else 'tied'
-    ended_data = {
+    winner = game.winner if game.winner else 'tie'
+    data = {
         'board-ended': {
-            'board-id': id,
+            'board-id': board_id,
             'winner': winner
         }
     }
-    await player1.send(json.dumps(ended_data))
-    await player2.send(json.dumps(ended_data))
+
+    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
 
     if game.winner and game.winner is player1:
         update_score(score['X'] + 1, score['O'])
@@ -86,30 +86,30 @@ async def handle_cell_clicked(websocket, message):
         return
 
     done = game.next_turn(player, row, col)
-    placed_data = {
+    data = {
         'piece-placed':  {
             'board-id': id,
             'cell': cell,
             'piece': player
         }
     }
-    await websocket.send(json.dumps(placed_data))
+    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
 
     if done:
-        end_match(game)
+        await end_match(id, game)
+    else:
+        await start_turn(id, game.turn)
 
-async def start_turn(board_id, new_player):
-    token = get_player_token(new_player)
-    if not token: return
-
+async def start_turn(board_id, game_piece):
     data = {
         'board-turn-changed': {
             'board-id': board_id,
-            'turn': token,
+            'turn': game_piece,
             'time-limit-ms': '5000'
         }
     }
-    await new_player.send(json.dumps(data))
+
+    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
 
 async def start_new_match():
     global latest_id
@@ -123,8 +123,8 @@ async def start_new_match():
             'board-id': latest_id
         }
     }
-    await asyncio.wait([ws.send(json.dumps(data)) for ws in [player1, player2]])
-    await start_turn(latest_id, get_websocket_from_token(game.turn))
+    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
+    await start_turn(latest_id, game.turn)
 
 async def add_player(websocket, player):
     data = {
@@ -133,6 +133,24 @@ async def add_player(websocket, player):
         }
     }
     await websocket.send(json.dumps(data))
+
+async def end_game():
+    global score, player1, player2
+
+    if score['X'] > score['O']:
+        winner = 'X'
+    elif score['O'] > score['X']:
+        winner = 'O'
+    else:
+        winner = 'tie'
+
+    data = {
+        'game-ended': {
+            'winner':  winner
+        }
+    }
+
+    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
 
 async def handle_message(websocket, message):
     print(message)
@@ -165,6 +183,8 @@ async def connection_handler(websocket, path):
             await handle_message(websocket, data)
     finally:
         connected.remove(websocket)
+        if websocket is player1 or websocket is player2:
+            await end_game()
 
 start_server = websockets.serve(connection_handler, 'localhost', 8765)
 

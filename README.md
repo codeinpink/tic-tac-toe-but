@@ -1,5 +1,7 @@
 # tic-tac-toe-but
 
+## List of Other Possible Names
+* tic-tic-tic
 
 ## Backend
 Use Python **3.7** because we don't use inferior versions.
