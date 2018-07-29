@@ -13,7 +13,7 @@ connected = set()
 player1 = None
 player2 = None
 
-boards = {}
+boards = {} # (game, moves)
 latest_id = -1
 score = {'X': 0, 'O': 0}
 
@@ -80,7 +80,7 @@ async def handle_cell_clicked(websocket, message):
         print(f'Player for websocket {websocket} not found')
         return
 
-    game = boards.get(id)
+    game = boards.get(id)['game']
     if not game:
         print(f'Game with id {id} not found')
         return
@@ -100,7 +100,18 @@ async def handle_cell_clicked(websocket, message):
     else:
         await start_turn(id, game.turn)
 
+async def skip_turn_if_time_expired(board_id, turn_number, game_piece):
+    await asyncio.sleep(5)
+    game = boards[board_id]['game']
+    current_turn_number = boards[board_id]['moves']
+    if current_turn_number == turn_number:
+        print(f'Skipping turn for player {game_piece} on match {board_id}')
+        next_turn_piece = 'O' if game_piece == 'X' else 'X'
+        game.turn = next_turn_piece
+        await start_turn(board_id, next_turn_piece)
+
 async def start_turn(board_id, game_piece):
+    boards[board_id]['moves'] = boards[board_id]['moves'] + 1
     data = {
         'board-turn-changed': {
             'board-id': board_id,
@@ -110,13 +121,14 @@ async def start_turn(board_id, game_piece):
     }
 
     await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
+    await asyncio.create_task(skip_turn_if_time_expired(board_id, boards[board_id]['moves'], game_piece))
 
 async def start_new_match():
     global latest_id
 
     game = TicTacToe()
     latest_id = latest_id + 1
-    boards[latest_id] = game
+    boards[latest_id] = {'game': game, 'moves': 0}
 
     data = {
         'board-started': {
