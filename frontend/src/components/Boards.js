@@ -1,17 +1,20 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { cellClicked } from '../actions';
-import { Board } from './board';
+import { Board } from './Board';
+import './Boards.css'
 
 const Component = ({boards, cellClicked}) => {
   const boardElems = boards.map(board => (
-    <Board
+    <div
+      className="board-container"
       key={board.key}
-      cells={board.cells}
-      cellClicked={(r, c) => {
-        cellClicked(board.boardId, r, c);
-      }}
-    ></Board>)
+    >
+      <Board
+        cells={board.cells}
+        cellClicked={(r, c) => cellClicked(board.boardId, r, c)}
+      ></Board>
+    </div>)
   );
   return boardElems;
 }
@@ -22,7 +25,7 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = dispatch => ({
   cellClicked: (boardId, r, c) =>
-    dispatch(cellClicked(boardId, {r, c}))
+    dispatch(cellClicked({boardId, cell: {r, c}}))
 })
 
 export const Boards = connect(
