@@ -12,7 +12,10 @@ print(f"Process ID: {os.getpid()}")
 connected = set()
 player1 = None
 player2 = None
-game = TicTacToe()
+
+boards = {}
+latest_id = -1
+score = {'X': 0, 'O': 0}
 
 async def time(websocket, path):
     while True:
@@ -36,6 +39,36 @@ def get_websocket_from_token(token):
     else:
         print(f'Unknown token {token}')
 
+async def update_score(x_points, o_points):
+    score['X'] = x_points
+    score['O'] = o_points
+
+    data = {
+        'score-changed': {
+            'X': score['X'],
+            'O': score['O']
+        }
+    }
+    await player1.send(json.dumps(data))
+    await player2.send(json.dumps(data))
+
+async def end_match(game):
+    global player1, player2
+    winner = game.winner if game.winner else 'tied'
+    ended_data = {
+        'board-ended': {
+            'board-id': id,
+            'winner': winner
+        }
+    }
+    await player1.send(json.dumps(ended_data))
+    await player2.send(json.dumps(ended_data))
+
+    if game.winner and game.winner is player1:
+        update_score(score['X'] + 1, score['O'])
+    elif game.winner and game.winner is player2:
+        update_score(score['X'], score['O'] + 1)
+
 async def handle_cell_clicked(websocket, message):
     id = message['board-id']
     cell = message['cell']
@@ -43,8 +76,14 @@ async def handle_cell_clicked(websocket, message):
     col = int(cell['c'])
 
     player = get_player_token(websocket)
+    if not player:
+        print(f'Player for websocket {websocket} not found')
+        return
 
-    if not player: return
+    game = boards.get(id)
+    if not game:
+        print(f'Game with id {id} not found')
+        return
 
     done = game.next_turn(player, row, col)
     placed_data = {
@@ -57,22 +96,15 @@ async def handle_cell_clicked(websocket, message):
     await websocket.send(json.dumps(placed_data))
 
     if done:
-        winner = game.winner if game.winner else 'tied'
-        ended_data = {
-            'board-ended': {
-                'board-id': id,
-                'winner': winner
-            }
-        }
-        await websocket.send(json.dumps(ended_data))
+        end_match(game)
 
-async def start_turn(new_player):
+async def start_turn(board_id, new_player):
     token = get_player_token(new_player)
     if not token: return
 
     data = {
         'board-turn-changed': {
-            'board-id': 1,
+            'board-id': board_id,
             'turn': token,
             'time-limit-ms': '5000'
         }
@@ -80,15 +112,19 @@ async def start_turn(new_player):
     await new_player.send(json.dumps(data))
 
 async def start_new_match():
+    global latest_id
+
     game = TicTacToe()
-    id = 1
+    latest_id = latest_id + 1
+    boards[latest_id] = game
+
     data = {
         'board-started': {
-            'board-id': id
+            'board-id': latest_id
         }
     }
-    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
-    await start_turn(get_websocket_from_token(game.turn))
+    await asyncio.wait([ws.send(json.dumps(data)) for ws in [player1, player2]])
+    await start_turn(latest_id, get_websocket_from_token(game.turn))
 
 async def add_player(websocket, player):
     data = {
