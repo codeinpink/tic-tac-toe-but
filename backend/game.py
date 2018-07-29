@@ -4,10 +4,14 @@ class GridPositionOutOfBounds(Exception):
 class GridPositionNotEmpty(Exception):
     pass
 
+class NotPlayerTurn(Exception):
+    pass
+
 class TicTacToe():
     grid = None
     player1 = None
     player2 = None
+    turn = None
 
     @property
     def tied(self):
@@ -61,8 +65,12 @@ class TicTacToe():
         self.grid = [[None for x in range(3)] for y in range(3)]
         self.player1 = player1
         self.player2 = player2
+        self.turn = self.player1
 
     def next_turn(self, player, x, y):
+        if player is not self.turn:
+            raise NotPlayerTurn(f'It is not player {player}\'s turn')
+
         if x < 0 or x > 2 or y < 0 or y > 2:
             raise GridPositionOutOfBounds('Pick a position on the grid, idiot')
         
@@ -75,6 +83,8 @@ class TicTacToe():
         if self.winner or self.tied:
             return True
         else:
+            print()
+            self.turn = self.player2 if self.player1 == self.turn else self.player1
             return False
 
     def __str__(self):
