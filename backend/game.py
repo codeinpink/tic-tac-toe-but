@@ -61,6 +61,10 @@ class TicTacToe():
 
         return None
 
+    @property
+    def over(self):
+        return bool(self.winner) or bool(self.tied)
+
     def __init__(self, player1='X', player2='O'):
         self.grid = [[None for x in range(3)] for y in range(3)]
         self.player1 = player1
@@ -83,7 +87,6 @@ class TicTacToe():
         if self.winner or self.tied:
             return True
         else:
-            print()
             self.turn = self.player2 if self.player1 == self.turn else self.player1
             return False
 

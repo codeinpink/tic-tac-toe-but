@@ -38,6 +38,37 @@ class TestTicTacToe(unittest.TestCase):
     def test_turn_starting(self):
         self.assertEqual(self.game.turn, 'X')
 
+    def test_over_empty(self):
+        self.assertFalse(self.game.over)
+
+    def test_over_not_empty(self):
+        self.game.next_turn('X', 0, 0)
+        self.assertFalse(self.game.over)
+
+    def test_over_winner(self):
+        self.game.next_turn('X', 0, 0)
+        self.game.turn = 'X'
+        self.game.next_turn('X', 0, 1)
+        self.game.turn = 'X'
+        self.game.next_turn('X', 0, 2)
+        
+        self.assertTrue(self.game.over)
+
+    def test_over_tied(self):
+        self.game.next_turn('X', 0, 0)
+        self.game.next_turn('O', 0, 2)
+        self.game.next_turn('X', 0, 1)
+
+        self.game.next_turn('O', 1, 0)
+        self.game.next_turn('X', 1, 2)
+        self.game.next_turn('O', 2, 1)
+
+        self.game.next_turn('X', 2, 0)
+        self.game.next_turn('O', 2, 2)
+        self.game.next_turn('X', 1, 1)
+        
+        self.assertTrue(self.game.over)
+
     def test_next_turn_set_position(self):
         self.assertEqual(self.game.grid[0][0], None)
         self.game.next_turn('X', 0, 0)
