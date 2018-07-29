@@ -18,12 +18,21 @@ const score = (state = {x: 0, o: 0}, action) => {
   }
 }
 
-const inProgress = (state = false, action) => {
+const playerPiece = (state = '', action) => {
   switch (action.type) {
     case 'GAME_STARTED':
-      return true
+      return action.playerPiece
+    default:
+      return state
+  }
+}
+
+const bannerMsg = (state = "Waiting for game to start", action) => {
+  switch (action.type) {
+    case 'GAME_STARTED':
+      return `Game started! You are ${action.playerPiece}!`
     case 'GAME_ENDED':
-      return false
+      return 'Game over!'
     default:
       return state
   }
@@ -51,6 +60,7 @@ const boards = (state = [], action) => {
 
 export const rootReducer = combineReducers({
   score,
-  inProgress,
-  boards
+  bannerMsg,
+  boards,
+  playerPiece
 });

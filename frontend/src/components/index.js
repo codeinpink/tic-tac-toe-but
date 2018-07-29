@@ -1,3 +1,3 @@
-export { Score } from './Score';
+export { MatchStatus } from './MatchStatus';
 export { DebugEvents } from './DebugEvents';
 export { Boards } from './Boards';

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { DebugEvents, Score, Boards } from './components';
+import { DebugEvents, MatchStatus, Boards } from './components';
 import './App.css';
 
 class App extends Component {
@@ -7,7 +7,7 @@ class App extends Component {
     return (
       <div className="app">
         <div>
-          <Score />
+          <MatchStatus />
         </div>
         <Boards />
         <div>
