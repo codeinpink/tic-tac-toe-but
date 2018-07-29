@@ -31,12 +31,6 @@ export const piecePlaced = ({boardId, cell, piece}) => ({
   piece
 })
 
-export const cellClicked = ({boardId, cell}) => ({
-  type: 'CELL_CLICKED',
-  boardId,
-  cell
-})
-
 export const boardTurnChanged = ({boardId, turn, timeLimitMs}) => ({
   type: 'BOARD_TURN_CHANGED',
   boardId,

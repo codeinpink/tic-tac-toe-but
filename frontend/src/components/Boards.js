@@ -1,10 +1,9 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { cellClicked } from '../actions';
 import { Board } from './Board';
 import './Boards.css'
 
-const Component = ({boards, cellClicked}) => {
+const Component = ({boards, cellClicked, playerPiece}) => {
   const boardElems = boards.map(board => (
     <div
       className="board-container"
@@ -12,6 +11,7 @@ const Component = ({boards, cellClicked}) => {
     >
       <Board
         cells={board.cells}
+        canPlay={board.turn === playerPiece}
         cellClicked={(r, c) => cellClicked(board.boardId, r, c)}
       ></Board>
     </div>)
@@ -20,15 +20,10 @@ const Component = ({boards, cellClicked}) => {
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  boards: state.boards
-})
-
-const mapDispatchToProps = dispatch => ({
-  cellClicked: (boardId, r, c) =>
-    dispatch(cellClicked({boardId, cell: {r, c}}))
+  boards: state.boards,
+  playerPiece: state.playerPiece
 })
 
 export const Boards = connect(
-  mapStateToProps,
-  mapDispatchToProps
+  mapStateToProps
 )(Component)

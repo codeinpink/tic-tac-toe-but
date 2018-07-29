@@ -8,12 +8,14 @@ export function Board(props) {
     <span className='cell'
       key={c}
       onClick={() => {
-        props.cellClicked(r, c);
+        if (props.canPlay) {
+          props.cellClicked(r, c);
+        }
       }}
     >{piece || ' '}</span>
   ));
 
-  return <div className='board'>
+  return <div className={`board ${props.canPlay ? 'playable' : 'not-playable'}`}>
     {grid.map((row, r) => (
       <div key={r} className='row'>
         {rowElems(r, row)}

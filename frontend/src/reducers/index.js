@@ -43,10 +43,16 @@ const boards = (state = [], action) => {
     case 'GAME_STARTED':
       return []
     case 'BOARD_STARTED':
-      return [...state, new Board(action.boardId)]
+      return [...state, new Board({boardId: action.boardId})]
     case 'BOARD_ENDED':
       const endedId = action.boardId;
       return state.filter(board => board.boardId !== endedId)
+    case 'BOARD_TURN_CHANGED':
+      return state.map(board => {
+        return board.boardId === action.boardId ?
+          board.changeTurn(action.turn, action.timeLimitMs) :
+          board
+      });
     case 'PIECE_PLACED':
       return state.map(board => {
         return board.boardId === action.boardId ?

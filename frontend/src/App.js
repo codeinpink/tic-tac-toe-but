@@ -1,21 +1,17 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { DebugEvents, MatchStatus, Boards } from './components';
 import './App.css';
 
-class App extends Component {
-  render() {
-    return (
-      <div className="app">
-        <div>
-          <MatchStatus />
-        </div>
-        <Boards />
-        <div>
-          <DebugEvents />
-        </div>
+export function App({cellClicked}) {
+  return (
+    <div className="app">
+      <div>
+        <MatchStatus />
       </div>
-    );
-  }
+      <Boards cellClicked={cellClicked} />
+      <div>
+        <DebugEvents />
+      </div>
+    </div>
+  )
 }
-
-export default App;

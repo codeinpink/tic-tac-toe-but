@@ -5,10 +5,12 @@ const blankBoard = [
 ];
 
 export class Board {
-  constructor(boardId, cells = blankBoard) {
-    this.boardId = boardId;
-    this.cells = cells;
-    this.key = `${boardId}:${cells.join('')}`;
+  constructor({boardId, cells = blankBoard, turn = '', timeLimitMs = 0}) {
+    this.boardId = boardId
+    this.cells = cells
+    this.key = `${boardId}:${cells.join('')}`
+    this.turn = turn
+    this.timeLimitMs = timeLimitMs
   }
 
   placePiece(r, c, piece) {
@@ -16,6 +18,20 @@ export class Board {
     const newCells = this.cells.map((val, i) => {
       return i === pieceIndex ? piece : val;
     });
-    return new Board(this.boardId, newCells);
+    return new Board({
+      boardId: this.boardId,
+      cells: newCells,
+      turn: this.turn,
+      timeLimitMs: this.timeLimitMs
+    });
+  }
+
+  changeTurn(piece, timeLimitMs) {
+    return new Board({
+      boardId: this.boardId,
+      cells: this.cells,
+      turn: piece,
+      timeLimitMs: timeLimitMs
+    });
   }
 }
