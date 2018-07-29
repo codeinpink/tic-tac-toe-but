@@ -4,8 +4,13 @@ import json
 import random
 import datetime
 import os
+import queue
 from game import TicTacToe
 
+import logging
+logger = logging.getLogger('websockets')
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())
 
 print(f"Process ID: {os.getpid()}")
 
@@ -14,6 +19,7 @@ player1 = None
 player2 = None
 
 boards = {} # (game, moves)
+pending_turns = queue.Queue()
 latest_id = -1
 score = {'X': 0, 'O': 0}
 
@@ -100,17 +106,33 @@ async def handle_cell_clicked(websocket, message):
     else:
         await start_turn(id, game.turn)
 
-async def skip_turn_if_time_expired(board_id, turn_number, game_piece):
-    await asyncio.sleep(5)
-    game = boards[board_id]['game']
-    current_turn_number = boards[board_id]['moves']
-    if current_turn_number == turn_number:
-        print(f'Skipping turn for player {game_piece} on match {board_id}')
-        next_turn_piece = 'O' if game_piece == 'X' else 'X'
-        game.turn = next_turn_piece
-        await start_turn(board_id, next_turn_piece)
+    await start_new_match()
+
+# Oh lord
+async def check_for_expired_turns():
+    global pending_turns
+
+    while True:
+        await asyncio.sleep(0.1)
+        if not pending_turns.empty():
+            pending = pending_turns.get()
+            board_id = pending['board_id']
+            game = boards[board_id]['game']
+            current_turn_number = boards[board_id]['moves']
+            game_piece = pending['game_piece']
+            turn = pending['turn_number']
+            print(f'Checking player {game_piece}\'s turn {turn} for match {board_id}')
+
+            if current_turn_number == turn and datetime.datetime.now() > pending['expires'] and not game.over:
+                print(f'Skipping turn for player {game_piece} on match {board_id}')
+                next_turn_piece = 'O' if game_piece == 'X' else 'X'
+                game.turn = next_turn_piece
+                asyncio.ensure_future(start_turn(board_id, next_turn_piece))
+            else:
+                pending_turns.put(pending)
 
 async def start_turn(board_id, game_piece):
+    await asyncio.sleep(2)
     boards[board_id]['moves'] = boards[board_id]['moves'] + 1
     data = {
         'board-turn-changed': {
@@ -120,8 +142,15 @@ async def start_turn(board_id, game_piece):
         }
     }
 
+    pending_turns.put(
+        {
+            'board_id': board_id,
+            'turn_number': boards[board_id]['moves'],
+            'game_piece': game_piece,
+            'expires': datetime.datetime.now() + datetime.timedelta(seconds=5)
+        }
+    )
     await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
-    await asyncio.create_task(skip_turn_if_time_expired(board_id, boards[board_id]['moves'], game_piece))
 
 async def start_new_match():
     global latest_id
@@ -167,7 +196,10 @@ async def end_game():
 async def handle_message(websocket, message):
     print(message)
     if message['cell-clicked']:
-        await handle_cell_clicked(websocket, message['cell-clicked'])
+        try:
+            await handle_cell_clicked(websocket, message['cell-clicked'])
+        except Exception as e:
+            print(e)
 
 async def connection_handler(websocket, path):
     connected.add(websocket)
@@ -188,17 +220,25 @@ async def connection_handler(websocket, path):
             pass
 
         if player1 and player2:
+            print('Starting new match')
             await start_new_match()
 
+        print('Waiting for messages')
         async for message in websocket:
+            print('Message received')
             data = json.loads(message)
             await handle_message(websocket, data)
     finally:
         connected.remove(websocket)
-        if websocket is player1 or websocket is player2:
+        if websocket is player1:
+            player1 = None
+            await end_game()
+        elif websocket is player2:
+            player2 = None
             await end_game()
 
 start_server = websockets.serve(connection_handler, 'localhost', 8765)
 
 asyncio.get_event_loop().run_until_complete(start_server)
+asyncio.ensure_future(check_for_expired_turns())
 asyncio.get_event_loop().run_forever()
