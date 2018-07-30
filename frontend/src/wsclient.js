@@ -1,7 +1,7 @@
 export class WSClient {
-  constructor(messageHandler) {
-    this.ws = new WebSocket("ws://localhost:3000/")
-    this.onmessage = ({data}) => {
+  constructor(uri, messageHandler) {
+    this.ws = new WebSocket(uri)
+    this.ws.onmessage = ({data}) => {
       messageHandler(data)
     }
   }

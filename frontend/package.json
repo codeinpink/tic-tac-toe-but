@@ -2,7 +2,12 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:8765",
+  "proxy": {
+    "/socket": {
+      "target": "ws://localhost:8765",
+      "ws": true
+    }
+  },
   "dependencies": {
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
