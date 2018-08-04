@@ -132,7 +132,7 @@ async def check_for_expired_turns():
                 pending_turns.put(pending)
 
 async def start_turn(board_id, game_piece):
-    await asyncio.sleep(2)
+    #await asyncio.sleep(2)
     boards[board_id]['moves'] = boards[board_id]['moves'] + 1
     data = {
         'board-turn-changed': {
