@@ -15,16 +15,19 @@ connected = set()
 player1 = None
 player2 = None
 
-boards = {} # (game, moves)
-pending_turns = queue.Queue()
-latest_id = -1
-score = {'X': 0, 'O': 0}
+boards = None 
+pending_turns = None
+latest_id = None
+score = None
 
-async def time(websocket, path):
-    while True:
-        now = datetime.datetime.utcnow().isoformat() + 'Z'
-        await websocket.send(now)
-        await asyncio.sleep(random.random() * 3)
+def initialize_data():
+    logging.info('Initializing data for new game')
+    global boards, pending_turns, latest_id, score
+
+    boards = {} # (game, moves)
+    pending_turns = queue.Queue()
+    latest_id = -1
+    score = {'X': 0, 'O': 0}
 
 def get_player_token(websocket):
     if websocket is player1:
@@ -87,10 +90,12 @@ async def handle_cell_clicked(websocket, message):
         logging.error(f'Player for websocket {websocket} not found')
         return
 
-    game = boards.get(id)['game']
-    if not game:
-        logging.error(f'Game with id {id} not found')
+    board = boards.get(id)
+    if not board:
+        logging.error(f'Board with id {id} not found')
         return
+
+    game = board['game']
 
     done = game.next_turn(player, row, col)
     data = {
@@ -197,13 +202,14 @@ async def end_game():
 
     logging.info(f'Overall winner: {winner}')
     await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
+    initialize_data()
 
 async def handle_message(websocket, message):
     if message['cell-clicked']:
         try:
             await handle_cell_clicked(websocket, message['cell-clicked'])
         except Exception as e:
-            logging.error(e)
+            logging.exception(e)
 
 async def connection_handler(websocket, path):
     connected.add(websocket)
@@ -246,7 +252,7 @@ async def connection_handler(websocket, path):
             await end_game()
 
 start_server = websockets.serve(connection_handler, 'localhost', 8765)
-
+initialize_data()
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.ensure_future(check_for_expired_turns())
 asyncio.get_event_loop().run_forever()
