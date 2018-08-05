@@ -22,6 +22,7 @@ const Component = ({boards, cellClicked, playerPiece}) => {
         cells={board.cells}
         boardState={boardState(board)}
         cellClicked={(r, c) => cellClicked(board.boardId, r, c)}
+        timeLimitMs={board.timeLimitMs}
       ></Board>
     </div>)
   )

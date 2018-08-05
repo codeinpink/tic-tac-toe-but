@@ -1,10 +1,12 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { scoreChanged, gameStarted, boardStarted, piecePlaced, boardEnded, gameEnded, boardTurnChanged } from '../actions'
 
 class Component extends React.Component {
-  constructor ({dispatch}) {
-    super()
+  constructor (props) {
+    super(props)
+    const {dispatch} = props
     this.dispatch = dispatch
     this.state = {
       xScore: 0,
@@ -157,6 +159,10 @@ class Component extends React.Component {
 
     </div>)
   }
+}
+
+Component.propTypes = {
+  dispatch: PropTypes.func.isRequired
 }
 
 export const DebugEvents = connect()(Component)
