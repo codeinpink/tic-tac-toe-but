@@ -1,0 +1,11 @@
+h2 {
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.scores {
+    display: flex;
+    justify-content: space-evenly;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 300;
+}

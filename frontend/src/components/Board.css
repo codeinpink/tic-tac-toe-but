@@ -30,3 +30,9 @@
 .board .row .cell:hover {
   background-color: #EEE;
 }
+
+.cell {
+  font-family: 'Open Sans', sans-serif;
+  border: black solid 1px;
+  border-bottom: 0;
+}
