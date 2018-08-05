@@ -10,9 +10,10 @@ import { WSClient } from './wsclient'
 import { msgToAction } from './msg-to-action'
 import './index.css'
 
+const wsURL = `ws://${window.location.host}/socket`
 const store = createStore(rootReducer)
 const wsClient = new WSClient(
-  'ws://localhost:3000/socket',
+  wsURL,
   (msg) => {
     let json
     try {
