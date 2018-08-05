@@ -13,7 +13,7 @@ export class Board {
     this.turn = turn
     this.winner = winner
     this.timeLimitMs = timeLimitMs
-    this.key = `${boardId}:${cells.join('')}:${turn}:${winner}:${timeLimitMs}`
+    this.key = `${boardId}:${cells.join('')}:${turn}:${winner.getOrElse('none')}:${timeLimitMs}`
   }
 
   data () {
