@@ -27,6 +27,6 @@ export function Board (props) {
 
 Board.propTypes = {
   cells: PropTypes.arrayOf(PropTypes.string).isRequired,
-  canPlay: PropTypes.boolean.isRequired,
-  cellClicked: PropTypes.function.isRequired
+  canPlay: PropTypes.bool.isRequired,
+  cellClicked: PropTypes.func.isRequired
 }
