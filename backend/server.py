@@ -276,7 +276,7 @@ async def connection_handler(websocket, path):
             player2 = None
             await end_game()
 
-start_server = websockets.serve(connection_handler, 'localhost', 8765)
+start_server = websockets.serve(connection_handler, '0.0.0.0', 8765)
 initialize_data()
 asyncio.get_event_loop().run_until_complete(start_server)
 
