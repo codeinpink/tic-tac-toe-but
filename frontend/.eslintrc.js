@@ -3,5 +3,12 @@ module.exports = {
     "standard",
     "plugin:react/recommended"
   ],
-  "react/prop-types": [0]
+  "plugins": ["jest"],
+  "env": {
+    "jest/globals": true
+  },
+  "globals": {
+    "fetch": false,
+    "WebSocket": false
+  }
 };

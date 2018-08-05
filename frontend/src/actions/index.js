@@ -10,7 +10,8 @@ export const gameEnded = ({winner}) => ({
 
 export const scoreChanged = ({x, o}) => ({
   type: 'SCORE_CHANGED',
-  x, o
+  x,
+  o
 })
 
 export const boardStarted = ({boardId}) => ({

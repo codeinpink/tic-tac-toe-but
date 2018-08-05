@@ -1,6 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { Board } from './Board';
+import { Board } from './Board'
 import './Boards.css'
 
 const Component = ({boards, cellClicked, playerPiece}) => {
@@ -15,8 +15,8 @@ const Component = ({boards, cellClicked, playerPiece}) => {
         cellClicked={(r, c) => cellClicked(board.boardId, r, c)}
       ></Board>
     </div>)
-  );
-  return boardElems;
+  )
+  return boardElems
 }
 
 const mapStateToProps = (state, ownProps) => ({

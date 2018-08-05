@@ -1,19 +1,20 @@
 import React from 'react'
-import './Board.css';
-import { groupBy } from '../groupby';
+import PropTypes from 'prop-types'
+import './Board.css'
+import { groupBy } from '../groupby'
 
-export function Board(props) {
-  const grid = groupBy(props.cells, (piece, i) => i / 3 | 0);
+export function Board (props) {
+  const grid = groupBy(props.cells, (piece, i) => i / 3 | 0)
   const rowElems = (r, row) => row.map((piece, c) => (
     <span className='cell'
       key={c}
       onClick={() => {
         if (props.canPlay) {
-          props.cellClicked(r, c);
+          props.cellClicked(r, c)
         }
       }}
     >{piece || ' '}</span>
-  ));
+  ))
 
   return <div className={`board ${props.canPlay ? 'playable' : 'not-playable'}`}>
     {grid.map((row, r) => (
@@ -22,4 +23,10 @@ export function Board(props) {
       </div>
     ))}
   </div>
+}
+
+Board.propTypes = {
+  cells: PropTypes.arrayOf(PropTypes.string).isRequired,
+  canPlay: PropTypes.boolean.isRequired,
+  cellClicked: PropTypes.function.isRequired
 }

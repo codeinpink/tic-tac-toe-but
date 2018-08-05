@@ -1,12 +1,12 @@
-import { combineReducers } from 'redux';
-import { Board } from '../models';
+import { combineReducers } from 'redux'
+import { Board } from '../models'
 
 const score = (state = {x: 0, o: 0}, action) => {
   switch (action.type) {
     case 'GAME_STARTED':
       return {
         x: 0,
-        o: 0,
+        o: 0
       }
     case 'SCORE_CHANGED':
       return {
@@ -27,7 +27,7 @@ const playerPiece = (state = '', action) => {
   }
 }
 
-const bannerMsg = (state = "Waiting for game to start", action) => {
+const bannerMsg = (state = 'Waiting for game to start', action) => {
   switch (action.type) {
     case 'GAME_STARTED':
       return `Game started! You are ${action.playerPiece}!`
@@ -45,20 +45,20 @@ const boards = (state = [], action) => {
     case 'BOARD_STARTED':
       return [...state, new Board({boardId: action.boardId})]
     case 'BOARD_ENDED':
-      const endedId = action.boardId;
+      const endedId = action.boardId
       return state.filter(board => board.boardId !== endedId)
     case 'BOARD_TURN_CHANGED':
       return state.map(board => {
-        return board.boardId === action.boardId ?
-          board.changeTurn(action.turn, action.timeLimitMs) :
-          board
-      });
+        return board.boardId === action.boardId
+          ? board.changeTurn(action.turn, action.timeLimitMs)
+          : board
+      })
     case 'PIECE_PLACED':
       return state.map(board => {
-        return board.boardId === action.boardId ?
-          board.placePiece(action.cell.r, action.cell.c, action.piece) :
-          board
-      });
+        return board.boardId === action.boardId
+          ? board.placePiece(action.cell.r, action.cell.c, action.piece)
+          : board
+      })
     default:
       return state
   }
@@ -69,4 +69,4 @@ export const rootReducer = combineReducers({
   bannerMsg,
   boards,
   playerPiece
-});
+})

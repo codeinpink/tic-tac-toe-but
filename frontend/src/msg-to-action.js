@@ -1,6 +1,6 @@
-import * as actions from './actions';
+import * as actions from './actions'
 
-export function msgToAction(msg) {
+export function msgToAction (msg) {
   const msgId = Object.keys(msg)[0]
   const body = msg[msgId]
   switch (msgId) {
@@ -27,8 +27,8 @@ export function msgToAction(msg) {
     case 'board-ended':
       return actions.boardEnded({
         boardId: body['board-id'],
-        winner: body['winner'],
-      });
+        winner: body['winner']
+      })
     default:
       return null
   }
