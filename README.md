@@ -12,4 +12,5 @@ To run python tests (because we're cool): `python -m unittest`
 
 ### How to run:
 1. Build the docker image: `docker build -t tic-tac-toe-but .`
-2. Run the docker image: `docker run -p 8765:8765 tic-tac-toe-but`
+2. Run the docker image: `docker run -d -p 8765:8765 tic-tac-toe-but` to run the container in the background and to publish the container's ports
+3. Make sure traffic to port `8765` is allowed in your firewall settings
