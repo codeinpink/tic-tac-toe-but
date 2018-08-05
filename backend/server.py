@@ -145,7 +145,7 @@ async def check_for_expired_turns():
             match = boards[board_id]
             game = match['game']
 
-            if not game.over and datetime.datetime.now() >= match['turn_expires']:
+            if not game.over and match['turn_expires'] and datetime.datetime.now() >= match['turn_expires']:
                 logging.debug(f'Skipping turn for player {game.turn} on match {board_id}')
                 next_turn_piece = 'O' if game.turn == 'X' else 'X'
                 game.turn = next_turn_piece
@@ -174,7 +174,7 @@ async def start_new_match():
 
     game = TicTacToe(turn=random_piece())
     latest_id = latest_id + 1
-    boards[latest_id] = {'game': game, 'moves': 0}
+    boards[latest_id] = {'game': game}
 
     data = {
         'board-started': {
