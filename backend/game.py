@@ -82,7 +82,6 @@ class TicTacToe():
             raise GridPositionNotEmpty(f'Position {x}, {y} taken')
         
         self.grid[x][y] = player
-        print(self.grid)
 
         if self.winner or self.tied:
             return True

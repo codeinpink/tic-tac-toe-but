@@ -8,11 +8,8 @@ import queue
 from game import TicTacToe
 
 import logging
-logger = logging.getLogger('websockets')
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
-
-print(f"Process ID: {os.getpid()}")
+logging.basicConfig(filename='log.txt', level=logging.INFO)
+logging.info(f"Process ID: {os.getpid()}")
 
 connected = set()
 player1 = None
@@ -43,7 +40,7 @@ def get_websocket_from_token(token):
     elif 'O':
         return player2
     else:
-        print(f'Unknown token {token}')
+        logging.error(f'Unknown token {token}')
 
 async def update_score(x_points, o_points):
     score['X'] = x_points
@@ -56,6 +53,7 @@ async def update_score(x_points, o_points):
         }
     }
 
+    logging.info(f'New score: X = {score["X"]}, O = {score["O"]}')
     await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
 
 async def end_match(board_id, game):
@@ -68,6 +66,7 @@ async def end_match(board_id, game):
         }
     }
 
+    logging.info(f'Winner for board {board_id}: {winner}')
     await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
 
     if game.winner and game.winner is player1:
@@ -81,14 +80,16 @@ async def handle_cell_clicked(websocket, message):
     row = int(cell['r'])
     col = int(cell['c'])
 
+    logging.debug(f'Handling cell click {row}, {col} on board {id}')
+
     player = get_player_token(websocket)
     if not player:
-        print(f'Player for websocket {websocket} not found')
+        logging.error(f'Player for websocket {websocket} not found')
         return
 
     game = boards.get(id)['game']
     if not game:
-        print(f'Game with id {id} not found')
+        logging.error(f'Game with id {id} not found')
         return
 
     done = game.next_turn(player, row, col)
@@ -121,10 +122,10 @@ async def check_for_expired_turns():
             current_turn_number = boards[board_id]['moves']
             game_piece = pending['game_piece']
             turn = pending['turn_number']
-            print(f'Checking player {game_piece}\'s turn {turn} for match {board_id}')
+            logging.debug(f'Checking player {game_piece}\'s turn {turn} for match {board_id}')
 
             if current_turn_number == turn and datetime.datetime.now() > pending['expires'] and not game.over:
-                print(f'Skipping turn for player {game_piece} on match {board_id}')
+                logging.debug(f'Skipping turn for player {game_piece} on match {board_id}')
                 next_turn_piece = 'O' if game_piece == 'X' else 'X'
                 game.turn = next_turn_piece
                 asyncio.ensure_future(start_turn(board_id, next_turn_piece))
@@ -132,6 +133,8 @@ async def check_for_expired_turns():
                 pending_turns.put(pending)
 
 async def start_turn(board_id, game_piece):
+    logging.debug(f'Starting turn for {game_piece} on board {board_id}')
+
     boards[board_id]['moves'] = boards[board_id]['moves'] + 1
     data = {
         'board-turn-changed': {
@@ -152,6 +155,8 @@ async def start_turn(board_id, game_piece):
     await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
 
 async def start_new_match():
+    logging.info('Starting new match')
+
     global latest_id
 
     game = TicTacToe()
@@ -190,15 +195,15 @@ async def end_game():
         }
     }
 
+    logging.info(f'Overall winner: {winner}')
     await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
 
 async def handle_message(websocket, message):
-    print(message)
     if message['cell-clicked']:
         try:
             await handle_cell_clicked(websocket, message['cell-clicked'])
         except Exception as e:
-            print(e)
+            logging.error(e)
 
 async def connection_handler(websocket, path):
     connected.add(websocket)
@@ -208,10 +213,12 @@ async def connection_handler(websocket, path):
         global player1, player2
 
         if not player1:
+            logging.info('Player1 (X) has joined')
             player1 = websocket
             await add_player(websocket, 'X')
             
         elif not player2:
+            logging.info('Player2 (O) has joined')
             player2 = websocket
             await add_player(websocket, 'O')
         else:
@@ -219,20 +226,22 @@ async def connection_handler(websocket, path):
             pass
 
         if player1 and player2:
-            print('Starting new match')
             await start_new_match()
 
-        print('Waiting for messages')
+        logging.debug('Waiting for messages')
         async for message in websocket:
-            print('Message received')
+            logging.debug('Message received')
             data = json.loads(message)
             await handle_message(websocket, data)
     finally:
+        logging.info(f'Websocket {websocket} disconnecting')
         connected.remove(websocket)
         if websocket is player1:
+            logging.info('Player1 has left. Ending game now...')
             player1 = None
             await end_game()
         elif websocket is player2:
+            logging.info('Player2 has left. Ending game now...')
             player2 = None
             await end_game()
 
