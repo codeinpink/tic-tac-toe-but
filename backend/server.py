@@ -35,9 +35,9 @@ def get_player_token(websocket):
         return None
 
 def get_websocket_from_token(token):
-    if 'X':
+    if token is 'X':
         return player1
-    elif 'O':
+    elif token is 'O':
         return player2
     else:
         logging.error(f'Unknown token {token}')
@@ -69,10 +69,10 @@ async def end_match(board_id, game):
     logging.info(f'Winner for board {board_id}: {winner}')
     await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
 
-    if game.winner and game.winner is player1:
-        update_score(score['X'] + 1, score['O'])
-    elif game.winner and game.winner is player2:
-        update_score(score['X'], score['O'] + 1)
+    if game.winner and get_websocket_from_token(game.winner) is player1:
+        await update_score(score['X'] + 1, score['O'])
+    else:
+        await update_score(score['X'], score['O'] + 1)
 
 async def handle_cell_clicked(websocket, message):
     id = message['board-id']
@@ -122,7 +122,7 @@ async def check_for_expired_turns():
             current_turn_number = boards[board_id]['moves']
             game_piece = pending['game_piece']
             turn = pending['turn_number']
-            logging.debug(f'Checking player {game_piece}\'s turn {turn} for match {board_id}')
+            #logging.debug(f'Checking player {game_piece}\'s turn {turn} for match {board_id}')
 
             if current_turn_number == turn and datetime.datetime.now() > pending['expires'] and not game.over:
                 logging.debug(f'Skipping turn for player {game_piece} on match {board_id}')
@@ -213,12 +213,12 @@ async def connection_handler(websocket, path):
         global player1, player2
 
         if not player1:
-            logging.info('Player1 (X) has joined')
+            logging.info(f'Player1 (X) has joined ({websocket})')
             player1 = websocket
             await add_player(websocket, 'X')
             
         elif not player2:
-            logging.info('Player2 (O) has joined')
+            logging.info(f'Player2 (O) has joined ({websocket})')
             player2 = websocket
             await add_player(websocket, 'O')
         else:
