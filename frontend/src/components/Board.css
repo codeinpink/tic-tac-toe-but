@@ -6,6 +6,10 @@
   background-color: #8F8;
 }
 
+.board.tie {
+  background-color: #DDD;
+}
+
 .board.lost {
   background-color: #F88;
 }

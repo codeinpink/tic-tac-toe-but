@@ -82,7 +82,7 @@ export class Board extends React.Component {
 
 Board.propTypes = {
   cells: PropTypes.arrayOf(PropTypes.string).isRequired,
-  boardState: PropTypes.oneOf(['won', 'lost', 'can-play', 'waiting']).isRequired,
+  boardState: PropTypes.oneOf(['won', 'lost', 'tie', 'can-play', 'waiting']).isRequired,
   cellClicked: PropTypes.func.isRequired,
   timeLimitMs: PropTypes.number.isRequired
 }

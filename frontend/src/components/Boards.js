@@ -5,8 +5,15 @@ import './Boards.css'
 
 const Component = ({boards, cellClicked, playerPiece}) => {
   const boardState = (board) => {
-    const won = board.winner.map(winner =>
-      winner === playerPiece ? 'won' : 'lost')
+    const won = board.winner.map(winner => {
+      if (winner === playerPiece) {
+        return 'won'
+      } else if (winner === 'tie') {
+        return 'tie'
+      } else {
+        return 'lost'
+      }
+    })
     if (won.isDefined()) {
       return won.get()
     } else {
