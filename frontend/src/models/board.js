@@ -1,3 +1,5 @@
+import option from 'scala-like-option'
+
 const blankBoard = [
   '', '', '',
   '', '', '',
@@ -5,12 +7,30 @@ const blankBoard = [
 ]
 
 export class Board {
-  constructor ({boardId, cells = blankBoard, turn = '', timeLimitMs = 0}) {
+  constructor ({boardId, cells = blankBoard, turn = '', winner = option.None(), timeLimitMs = 0}) {
     this.boardId = boardId
     this.cells = cells
-    this.key = `${boardId}:${cells.join('')}`
     this.turn = turn
+    this.winner = winner
     this.timeLimitMs = timeLimitMs
+    this.key = `${boardId}:${cells.join('')}:${turn}:${winner}:${timeLimitMs}`
+  }
+
+  data () {
+    return {
+      boardId: this.boardId,
+      cells: this.cells,
+      turn: this.turn,
+      winner: this.winner,
+      timeLimitMs: this.timeLimitMs
+    }
+  }
+
+  changeWinner (winner) {
+    return new Board({
+      ...this.data(),
+      winner: option.Some(winner)
+    })
   }
 
   placePiece (r, c, piece) {
@@ -19,17 +39,14 @@ export class Board {
       return i === pieceIndex ? piece : val
     })
     return new Board({
-      boardId: this.boardId,
-      cells: newCells,
-      turn: this.turn,
-      timeLimitMs: this.timeLimitMs
+      ...this.data(),
+      cells: newCells
     })
   }
 
   changeTurn (piece, timeLimitMs) {
     return new Board({
-      boardId: this.boardId,
-      cells: this.cells,
+      ...this.data(),
       turn: piece,
       timeLimitMs: timeLimitMs
     })

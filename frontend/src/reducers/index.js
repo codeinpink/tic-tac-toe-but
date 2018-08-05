@@ -43,10 +43,21 @@ const boards = (state = [], action) => {
     case 'GAME_STARTED':
       return []
     case 'BOARD_STARTED':
-      return [...state, new Board({boardId: action.boardId})]
+      const replaceIndex = state.findIndex(board => board.winner.isDefined())
+      const newBoard = new Board({boardId: action.boardId})
+      if (replaceIndex === -1) {
+        return [...state, newBoard]
+      } else {
+        return state.map((board, i) => {
+          return i === replaceIndex ? newBoard : board
+        })
+      }
     case 'BOARD_ENDED':
-      const endedId = action.boardId
-      return state.filter(board => board.boardId !== endedId)
+      return state.map(board => {
+        return board.boardId === action.boardId
+          ? board.changeWinner(action.winner)
+          : board
+      })
     case 'BOARD_TURN_CHANGED':
       return state.map(board => {
         return board.boardId === action.boardId
