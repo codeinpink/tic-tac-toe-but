@@ -1,12 +1,5 @@
 .board {
-  border-color: black;
-  border-width: 2px;
-  border-style: solid;
   display: inline-block;
-}
-
-.board.waiting {
-  background-color: #DDD;
 }
 
 .board.won {
@@ -27,12 +20,34 @@
   overflow: hidden;
 }
 
-.board .row .cell:hover {
-  background-color: #EEE;
+.board:not(.waiting):not(.won):not(.lost) .row .cell:hover {
+  background-color: #B2EBF2;
 }
 
 .cell {
+  color: #FF4081;
   font-family: 'Open Sans', sans-serif;
-  border: black solid 1px;
+  border: #00BCD4 solid 1px;
   border-bottom: 0;
+}
+
+.board.waiting .cell {
+  color: #BDBDBD;
+  border-color: #BDBDBD;
+}
+
+.row-0 {
+  border-top: none;
+}
+
+.col-0 {
+  border-left: none;
+}
+
+.row-2 {
+  border-bottom: none;
+}
+
+.col-2 {
+  border-right: none;
 }

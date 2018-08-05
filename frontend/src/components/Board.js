@@ -6,7 +6,7 @@ import { groupBy } from '../groupby'
 export function Board (props) {
   const grid = groupBy(props.cells, (piece, i) => i / 3 | 0)
   const rowElems = (r, row) => row.map((piece, c) => (
-    <span className='cell'
+    <span className={`cell row-${r} col-${c}`}
       key={c}
       onClick={() => {
         props.cellClicked(r, c)

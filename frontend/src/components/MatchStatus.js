@@ -8,9 +8,9 @@ const Component = ({curScore, playerPiece, bannerMsg}) => {
     <div>
       <h2>{bannerMsg}</h2>
       <h2>Score</h2>
-      <div class="scores">
-        <span>X: <strong>{curScore.x}</strong></span>
-        <span>O: <strong>{curScore.o}</strong></span>
+      <div className="scores">
+        <span><strong>X:</strong> {curScore.x}</span>
+        <span><strong>O:</strong> {curScore.o}</span>
       </div>
     </div>
   )
