@@ -29,6 +29,11 @@ export function msgToAction (msg) {
         boardId: body['board-id'],
         winner: body['winner']
       })
+    case 'score-changed':
+      return actions.scoreChanged({
+        x: body['X'],
+        o: body['O']
+      })
     default:
       return null
   }
