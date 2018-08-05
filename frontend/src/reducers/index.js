@@ -1,6 +1,7 @@
 import { combineReducers } from 'redux'
 import { Board } from '../models'
 
+const maxBoards = 16
 const score = (state = {x: 0, o: 0}, action) => {
   switch (action.type) {
     case 'GAME_STARTED':
@@ -44,7 +45,14 @@ const boards = (state = [], action) => {
       return []
     case 'BOARD_STARTED':
       const newBoard = new Board({boardId: action.boardId})
-      return [...state, newBoard]
+      if (state.length < maxBoards) {
+        return [...state, newBoard]
+      } else {
+        const replaceIndex = state.findIndex(board => board.winner.isDefined())
+        return state.map((board, i) => {
+          return i === replaceIndex ? newBoard : board
+        })
+      }
     case 'BOARD_ENDED':
       return state.map(board => {
         return board.boardId === action.boardId

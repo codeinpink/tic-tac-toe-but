@@ -14,7 +14,7 @@ logging.info(f"Process ID: {os.getpid()}")
 turn_time_limit = 5
 
 # sets a limit on the number of boards that can be played simultaneously; set to 0 to disable
-max_boards = 0
+max_boards = 16
 
 connected = set()
 player1 = None
