@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import option from 'scala-like-option'
+import { none, some } from '../option'
 
 import './Board.css'
 import { groupBy } from '../groupby'
@@ -16,7 +16,7 @@ export class Board extends React.Component {
   constructor (props) {
     super(props)
     this.props = props
-    this.timerId = option.None()
+    this.timerId = none
     this.state = {
       turnElapsedRatio: 0,
       timerVisible: false
@@ -45,7 +45,7 @@ export class Board extends React.Component {
 
   clearTimer () {
     this.timerId.forEach(id => clearInterval(id))
-    this.timerId = option.None()
+    this.timerId = none
     this.setState({
       timerVisible: false
     })
@@ -54,7 +54,7 @@ export class Board extends React.Component {
   startTimer () {
     this.clearTimer()
     const endTime = timeMs() + this.props.timeLimitMs
-    this.timerId = option.Some(setInterval(() => {
+    this.timerId = some(setInterval(() => {
       const ratio = 1 - ((endTime - timeMs()) / this.props.timeLimitMs)
       if (ratio >= 1) {
         this.clearTimer()

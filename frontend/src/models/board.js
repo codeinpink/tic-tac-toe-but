@@ -1,4 +1,4 @@
-import option from 'scala-like-option'
+import { none, some } from '../option'
 
 const blankBoard = [
   '', '', '',
@@ -7,7 +7,7 @@ const blankBoard = [
 ]
 
 export class Board {
-  constructor ({boardId, cells = blankBoard, turn = '', winner = option.None(), timeLimitMs = 0}) {
+  constructor ({boardId, cells = blankBoard, turn = '', winner = none, timeLimitMs = 0}) {
     this.key = boardId
     this.boardId = boardId
     this.cells = cells
@@ -29,7 +29,7 @@ export class Board {
   changeWinner (winner) {
     return new Board({
       ...this.data(),
-      winner: option.Some(winner)
+      winner: some(winner)
     })
   }
 
