@@ -145,7 +145,7 @@ async def check_for_expired_turns():
             match = boards[board_id]
             game = match['game']
 
-            if not game.over and match['turn_expires'] and datetime.datetime.now() >= match['turn_expires']:
+            if not game.over and 'turn_expires' in match and datetime.datetime.now() >= match['turn_expires']:
                 logging.debug(f'Skipping turn for player {game.turn} on match {board_id}')
                 next_turn_piece = 'O' if game.turn == 'X' else 'X'
                 game.turn = next_turn_piece
