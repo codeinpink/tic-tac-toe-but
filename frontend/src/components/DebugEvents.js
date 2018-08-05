@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import { scoreChanged, gameStarted, boardStarted, piecePlaced, boardEnded, gameEnded, boardTurnChanged } from '../actions'
 
 class Component extends React.Component {
-  constructor({dispatch}) {
+  constructor ({dispatch}) {
     super()
     this.dispatch = dispatch
     this.state = {
@@ -12,12 +12,12 @@ class Component extends React.Component {
       boardId: 0,
       r: 0,
       c: 0,
-      piece: "x",
+      piece: 'x',
       timeMs: 1000
-    };
+    }
   }
 
-  render() {
+  render () {
     return (<div>
       <h2>Events</h2>
 
@@ -159,4 +159,4 @@ class Component extends React.Component {
   }
 }
 
-export const DebugEvents = connect()(Component);
+export const DebugEvents = connect()(Component)

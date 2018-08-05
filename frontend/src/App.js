@@ -1,8 +1,9 @@
-import React from 'react';
-import { DebugEvents, MatchStatus, Boards } from './components';
-import './App.css';
+import React from 'react'
+import PropTypes from 'prop-types'
+import { DebugEvents, MatchStatus, Boards } from './components'
+import './App.css'
 
-export function App({cellClicked}) {
+export function App ({cellClicked}) {
   return (
     <div className="app">
       <div>
@@ -14,4 +15,8 @@ export function App({cellClicked}) {
       </div>
     </div>
   )
+}
+
+App.propTypes = {
+  cellClicked: PropTypes.func.isRequired
 }
