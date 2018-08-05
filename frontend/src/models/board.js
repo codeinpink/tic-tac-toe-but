@@ -8,12 +8,12 @@ const blankBoard = [
 
 export class Board {
   constructor ({boardId, cells = blankBoard, turn = '', winner = option.None(), timeLimitMs = 0}) {
+    this.key = boardId
     this.boardId = boardId
     this.cells = cells
     this.turn = turn
     this.winner = winner
     this.timeLimitMs = timeLimitMs
-    this.key = `${boardId}:${cells.join('')}:${turn}:${winner.getOrElse('none')}:${timeLimitMs}`
   }
 
   data () {
