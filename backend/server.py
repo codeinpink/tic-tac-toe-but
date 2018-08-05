@@ -4,7 +4,6 @@ import json
 import random
 import datetime
 import os
-import queue
 from game import TicTacToe
 
 import logging
@@ -22,16 +21,14 @@ player1 = None
 player2 = None
 
 boards = None 
-pending_turns = None
 latest_id = None
 score = None
 
 def initialize_data():
     logging.info('Initializing data for new game')
-    global boards, pending_turns, latest_id, score
+    global boards, latest_id, score
 
     boards = {} # (game, moves)
-    pending_turns = queue.Queue()
     latest_id = -1
     score = {'X': 0, 'O': 0}
 
@@ -139,31 +136,25 @@ async def handle_cell_clicked(websocket, message):
 
 # Oh lord
 async def check_for_expired_turns():
-    global pending_turns
-
     while True:
         await asyncio.sleep(0.1)
-        if not pending_turns.empty():
-            pending = pending_turns.get()
-            board_id = pending['board_id']
-            game = boards[board_id]['game']
-            current_turn_number = boards[board_id]['moves']
-            game_piece = pending['game_piece']
-            turn = pending['turn_number']
-            #logging.debug(f'Checking player {game_piece}\'s turn {turn} for match {board_id}')
+        for board_id in boards:
+            match = boards[board_id]
+            game = match['game']
 
-            if current_turn_number == turn and datetime.datetime.now() > pending['expires'] and not game.over:
-                logging.debug(f'Skipping turn for player {game_piece} on match {board_id}')
-                next_turn_piece = 'O' if game_piece == 'X' else 'X'
+            if not game.over and datetime.datetime.now() >= match['turn_expires']:
+                logging.debug(f'Skipping turn for player {game.turn} on match {board_id}')
+                next_turn_piece = 'O' if game.turn == 'X' else 'X'
                 game.turn = next_turn_piece
                 asyncio.ensure_future(start_turn(board_id, next_turn_piece))
-            else:
-                pending_turns.put(pending)
 
 async def start_turn(board_id, game_piece):
     logging.debug(f'Starting turn for {game_piece} on board {board_id}')
 
-    boards[board_id]['moves'] = boards[board_id]['moves'] + 1
+    if turn_limits_enabled():
+        turn_expires = datetime.datetime.now() + datetime.timedelta(seconds=turn_time_limit)
+        boards[board_id]['turn_expires'] = turn_expires
+
     data = {
         'board-turn-changed': {
             'board-id': board_id,
@@ -171,16 +162,6 @@ async def start_turn(board_id, game_piece):
             'time-limit-ms': turn_time_limit * 1000
         }
     }
-
-    if turn_limits_enabled():
-        pending_turns.put(
-            {
-                'board_id': board_id,
-                'turn_number': boards[board_id]['moves'],
-                'game_piece': game_piece,
-                'expires': datetime.datetime.now() + datetime.timedelta(seconds=turn_time_limit)
-            }
-        )
 
     await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
 
