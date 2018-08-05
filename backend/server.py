@@ -1,10 +1,10 @@
 import asyncio
 import websockets
 import json
-import random
 import datetime
 import os
 from game import TicTacToe
+from random import randint
 
 import logging
 logging.basicConfig(filename='log.txt', filemode='w', format='%(levelname)s (%(asctime)s): %(message)s', level=logging.INFO)
@@ -56,6 +56,9 @@ def get_websocket_from_token(token):
         return player2
     else:
         logging.error(f'Unknown token {token}')
+
+def random_piece():
+    return 'X' if randint(0, 1) == 0 else 'O'
 
 async def update_score(x_points, o_points):
     score['X'] = x_points
@@ -166,11 +169,10 @@ async def start_turn(board_id, game_piece):
     await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
 
 async def start_new_match():
+    global latest_id
     logging.info('Starting new match')
 
-    global latest_id
-
-    game = TicTacToe()
+    game = TicTacToe(turn=random_piece())
     latest_id = latest_id + 1
     boards[latest_id] = {'game': game, 'moves': 0}
 

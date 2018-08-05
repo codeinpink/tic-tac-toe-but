@@ -65,11 +65,11 @@ class TicTacToe():
     def over(self):
         return bool(self.winner) or bool(self.tied)
 
-    def __init__(self, player1='X', player2='O'):
+    def __init__(self, player1='X', player2='O', turn='X'):
         self.grid = [[None for x in range(3)] for y in range(3)]
         self.player1 = player1
         self.player2 = player2
-        self.turn = self.player1
+        self.turn = turn
 
     def next_turn(self, player, x, y):
         if player is not self.turn:
