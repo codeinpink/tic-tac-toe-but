@@ -11,6 +11,12 @@ import logging
 logging.basicConfig(filename='log.txt', filemode='w', level=logging.INFO)
 logging.info(f"Process ID: {os.getpid()}")
 
+# time limit (in seconds) for each player; set to 0 to disable
+turn_time_limit = 5
+
+# sets a limit on the number of boards that can be played simultaneously; set to 0 to disable
+max_boards = 0
+
 connected = set()
 player1 = None
 player2 = None
@@ -28,6 +34,15 @@ def initialize_data():
     pending_turns = queue.Queue()
     latest_id = -1
     score = {'X': 0, 'O': 0}
+
+def turn_limits_enabled():
+    return turn_time_limit > 0
+
+def max_boards_enabled():
+    return max_boards > 0
+
+def get_num_active_boards():
+    return len({board_id:match for board_id, match in boards.items() if not match['game'].winner})
 
 def get_player_token(websocket):
     if websocket is player1:
@@ -112,7 +127,15 @@ async def handle_cell_clicked(websocket, message):
     else:
         await start_turn(id, game.turn)
 
-    await start_new_match()
+    if max_boards_enabled():
+        num_active = get_num_active_boards()
+        logging.debug(f'# of active boards: {num_active}, # of max boards: {max_boards}')
+        if num_active < max_boards:
+            await start_new_match()
+        else:
+            logging.info(f'Max number of boards ({max_boards}) reached')
+    else:
+        await start_new_match()
 
 # Oh lord
 async def check_for_expired_turns():
@@ -145,18 +168,20 @@ async def start_turn(board_id, game_piece):
         'board-turn-changed': {
             'board-id': board_id,
             'turn': game_piece,
-            'time-limit-ms': '5000'
+            'time-limit-ms': turn_time_limit * 1000
         }
     }
 
-    pending_turns.put(
-        {
-            'board_id': board_id,
-            'turn_number': boards[board_id]['moves'],
-            'game_piece': game_piece,
-            'expires': datetime.datetime.now() + datetime.timedelta(seconds=5)
-        }
-    )
+    if turn_limits_enabled():
+        pending_turns.put(
+            {
+                'board_id': board_id,
+                'turn_number': boards[board_id]['moves'],
+                'game_piece': game_piece,
+                'expires': datetime.datetime.now() + datetime.timedelta(seconds=turn_time_limit)
+            }
+        )
+
     await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
 
 async def start_new_match():
@@ -254,5 +279,8 @@ async def connection_handler(websocket, path):
 start_server = websockets.serve(connection_handler, 'localhost', 8765)
 initialize_data()
 asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.ensure_future(check_for_expired_turns())
+
+if turn_limits_enabled():
+    asyncio.ensure_future(check_for_expired_turns())
+
 asyncio.get_event_loop().run_forever()
