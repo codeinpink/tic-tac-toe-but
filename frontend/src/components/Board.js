@@ -9,9 +9,7 @@ export function Board (props) {
     <span className='cell'
       key={c}
       onClick={() => {
-        if (props.canPlay) {
-          props.cellClicked(r, c)
-        }
+        props.cellClicked(r, c)
       }}
     >{piece || ' '}</span>
   ))
