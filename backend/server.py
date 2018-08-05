@@ -8,7 +8,7 @@ import queue
 from game import TicTacToe
 
 import logging
-logging.basicConfig(filename='log.txt', level=logging.INFO)
+logging.basicConfig(filename='log.txt', filemode='w', level=logging.INFO)
 logging.info(f"Process ID: {os.getpid()}")
 
 connected = set()
