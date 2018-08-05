@@ -16,7 +16,7 @@ export function Board (props) {
     >{piece || ' '}</span>
   ))
 
-  return <div className={`board ${props.canPlay ? 'playable' : 'not-playable'}`}>
+  return <div className={`board ${props.boardState}`}>
     {grid.map((row, r) => (
       <div key={r} className='row'>
         {rowElems(r, row)}
@@ -27,6 +27,6 @@ export function Board (props) {
 
 Board.propTypes = {
   cells: PropTypes.arrayOf(PropTypes.string).isRequired,
-  canPlay: PropTypes.bool.isRequired,
+  boardState: PropTypes.oneOf(['won', 'lost', 'can-play', 'waiting']).isRequired,
   cellClicked: PropTypes.func.isRequired
 }
