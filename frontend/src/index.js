@@ -10,7 +10,7 @@ import { WSClient } from './wsclient'
 import { msgToAction } from './msg-to-action'
 import './index.css'
 
-const wsURL = `ws://${window.location.host}/socket`
+const wsURL = process.env.REACT_APP_WS_SERVER
 const store = createStore(rootReducer)
 const wsClient = new WSClient(
   wsURL,
