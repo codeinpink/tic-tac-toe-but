@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { Provider } from 'react-redux'
 import { createStore } from 'redux'
 import { rootReducer } from './reducers'
@@ -15,6 +16,7 @@ export class Game extends React.Component {
     super(props)
     this.store = createStore(rootReducer)
     this.wsClient = null
+    this.showDebugEvents = props.location.search.includes('debug')
   }
 
   componentDidMount () {
@@ -56,9 +58,7 @@ export class Game extends React.Component {
           <MatchStatus />
         </div>
         <Boards cellClicked={() => this.cellClicked} />
-        <div>
-          <DebugEvents />
-        </div>
+        {this.showDebugEvents && <DebugEvents />}
       </div>
     </Provider>
   }
@@ -66,4 +66,10 @@ export class Game extends React.Component {
   componentWillUnmount () {
     this.wsClient.disconnect()
   }
+}
+
+Game.propTypes = {
+  location: PropTypes.shape({
+    search: PropTypes.string.isRequired
+  }).isRequired
 }
