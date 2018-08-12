@@ -3,8 +3,6 @@ import websockets
 import json
 import datetime
 import os
-import ssl
-import pathlib
 from game import TicTacToe
 from random import randint
 
@@ -262,10 +260,7 @@ async def connection_handler(websocket, path):
             await end_game()
 
 
-ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-cert_path = '/etc/letsencrypt/live/codein.pink/fullchain.pem'
-ssl_context.load_cert_chain(cert_path)
-start_server = websockets.serve(connection_handler, '0.0.0.0', 8765, ssl=ssl_context)
+start_server = websockets.serve(connection_handler, '0.0.0.0', 8765)
 initialize_data()
 asyncio.get_event_loop().run_until_complete(start_server)
 
