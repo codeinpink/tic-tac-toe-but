@@ -8,6 +8,10 @@ export function msgToAction (msg) {
       return actions.gameStarted({
         playerPiece: body['player-piece']
       })
+    case 'game-ended':
+      return actions.gameEnded({
+        winner: body['winner']
+      })
     case 'board-started':
       return actions.boardStarted({
         boardId: body['board-id']
