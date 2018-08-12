@@ -8,6 +8,9 @@ jobs:
 
     steps:
       - checkout
+      - run:
+          name: Change into backend folder
+          command: cd backend
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "requirements.txt" }}
