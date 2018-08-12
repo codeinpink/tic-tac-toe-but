@@ -31,9 +31,9 @@ const playerPiece = (state = '', action) => {
 const bannerMsg = (state = 'Waiting for game to start', action) => {
   switch (action.type) {
     case 'GAME_STARTED':
-      return `Game started! You are ${action.playerPiece}!`
+      return `You are ${action.playerPiece}!`
     case 'GAME_ENDED':
-      return 'Game over!'
+      return `Game over! ${ action.winner === 'tie' ? 'Tie game!' : `Winner is ${action.winner}!` }`
     default:
       return state
   }
