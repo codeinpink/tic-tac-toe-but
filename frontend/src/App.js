@@ -1,22 +1,16 @@
 import React from 'react'
-import PropTypes from 'prop-types'
-import { DebugEvents, MatchStatus, Boards } from './components'
+import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom'
+import { Landing, Game } from './components'
 import './App.css'
 
-export function App ({cellClicked}) {
+export function App () {
   return (
-    <div className="app">
-      <div>
-        <MatchStatus />
-      </div>
-      <Boards cellClicked={cellClicked} />
-      <div>
-        <DebugEvents />
-      </div>
-    </div>
+    <BrowserRouter>
+      <Switch>
+        <Route exact path="/" component={Landing}/>
+        <Route path="/game" component={Game}/>
+        <Redirect to="/"/>
+      </Switch>
+    </BrowserRouter>
   )
-}
-
-App.propTypes = {
-  cellClicked: PropTypes.func.isRequired
 }

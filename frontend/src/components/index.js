@@ -1,3 +1,2 @@
-export { MatchStatus } from './MatchStatus'
-export { DebugEvents } from './DebugEvents'
-export { Boards } from './Boards'
+export { Game } from './game'
+export { Landing } from './landing'

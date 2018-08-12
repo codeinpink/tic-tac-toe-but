@@ -1,4 +1,4 @@
-import { none, some } from '../option'
+import { none, some } from '../../../util/option'
 
 const blankBoard = [
   '', '', '',

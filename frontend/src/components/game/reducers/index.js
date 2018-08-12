@@ -33,7 +33,7 @@ const bannerMsg = (state = 'Waiting for opponent...', action) => {
     case 'GAME_STARTED':
       return `Game started! You are ${action.playerPiece}!`
     case 'GAME_ENDED':
-      return `Game over! ${ action.winner === 'tie' ? 'Tie game!' : `Winner is ${action.winner}!` }`
+      return `Game over! ${action.winner === 'tie' ? 'Tie game!' : `Winner is ${action.winner}!`}`
     default:
       return state
   }
