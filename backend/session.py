@@ -218,17 +218,16 @@ class Session:
             if not self.player1:
                 logger.info(f'Player1 (X) has joined ({websocket})')
                 self.player1 = websocket
-                await self.add_player(websocket, 'X')
                 
             elif not self.player2:
                 logger.info(f'Player2 (O) has joined ({websocket})')
                 self.player2 = websocket
-                await self.add_player(websocket, 'O')
             else:
-                # observer
-                pass
+                raise Exception('Added too many players to session')
 
             if self.player1 and self.player2:
+                await self.add_player(self.player1, 'X')
+                await self.add_player(self.player2, 'O')
                 self.game_started = True
                 if self.turn_limits_enabled():
                     asyncio.ensure_future(self.check_for_expired_turns())
