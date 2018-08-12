@@ -17,6 +17,7 @@ export class Game extends React.Component {
     this.store = createStore(rootReducer)
     this.wsClient = null
     this.showDebugEvents = props.location.search.includes('debug')
+    this.cellClicked = this.cellClicked.bind(this)
   }
 
   componentDidMount () {
@@ -57,7 +58,7 @@ export class Game extends React.Component {
         <div>
           <MatchStatus />
         </div>
-        <Boards cellClicked={() => this.cellClicked} />
+        <Boards cellClicked={this.cellClicked} />
         {this.showDebugEvents && <DebugEvents />}
       </div>
     </Provider>
