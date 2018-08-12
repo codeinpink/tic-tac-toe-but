@@ -2,12 +2,6 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "proxy": {
-    "/socket": {
-      "target": "ws://localhost:8765",
-      "ws": true
-    }
-  },
   "homepage": "https://codeinpink.github.io/tic-tac-toe-but",
   "dependencies": {
     "react": "^16.4.1",
