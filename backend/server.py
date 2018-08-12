@@ -1,270 +1,61 @@
 import asyncio
-import websockets
-import json
-import datetime
-import os
-from game import TicTacToe
-from random import randint
-
 import logging
-logging.basicConfig(filename='log.txt', filemode='w', format='%(levelname)s (%(asctime)s): %(message)s', level=logging.INFO)
-logging.info(f"Process ID: {os.getpid()}")
+import re
+import websockets
+from session import Session
 
-# time limit (in seconds) for each player; set to 0 to disable
-turn_time_limit = 5
+logger = logging.getLogger(__name__)
 
-# sets a limit on the number of boards that can be played simultaneously; set to 0 to disable
-max_boards = 16
+class MatchMaker:
+    def __init__(self):
+        self.pending_session = Session()
+        self.waiting_ws = set()
 
-connected = set()
-player1 = None
-player2 = None
+    async def connect(self, ws):
+        if self.pending_session.game_started:
+            logger.info('Creating a new session')
+            self.pending_session = Session()
+            self.waiting_ws.clear()
 
-boards = None 
-latest_id = None
-score = None
+        logger.info('Adding player to session')
+        self.waiting_ws.add(ws)
+        await self.pending_session.play(ws)
 
-def initialize_data():
-    logging.info('Initializing data for new game')
-    global boards, latest_id, score
+    async def disconnect(self, ws):
+        if ws in self.waiting_ws:
+            logger.info('Scrapping pending session')
+            self.waiting_ws.clear()
+            self.pending_session = Session()
 
-    boards = {} # (game, moves)
-    latest_id = -1
-    score = {'X': 0, 'O': 0}
+class Controller:
+    def __init__(self):
+        self.match_maker = MatchMaker()
 
-def turn_limits_enabled():
-    return turn_time_limit > 0
-
-def max_boards_enabled():
-    return max_boards > 0
-
-def get_num_active_boards():
-    return len({board_id:match for board_id, match in boards.items() if not match['game'].winner})
-
-def get_player_token(websocket):
-    if websocket is player1:
-        return 'X'
-    elif websocket is player2:
-        return 'O'
-    else:
-        return None
-
-def get_websocket_from_token(token):
-    if token is 'X':
-        return player1
-    elif token is 'O':
-        return player2
-    else:
-        logging.error(f'Unknown token {token}')
-
-def random_piece():
-    return 'X' if randint(0, 1) == 0 else 'O'
-
-async def update_score(x_points, o_points):
-    score['X'] = x_points
-    score['O'] = o_points
-
-    data = {
-        'score-changed': {
-            'X': score['X'],
-            'O': score['O']
-        }
-    }
-
-    logging.info(f'New score: X = {score["X"]}, O = {score["O"]}')
-    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
-
-async def end_match(board_id, game):
-    global player1, player2
-    winner = game.winner if game.winner else 'tie'
-    data = {
-        'board-ended': {
-            'board-id': board_id,
-            'winner': winner
-        }
-    }
-
-    logging.info(f'Winner for board {board_id}: {winner}')
-    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
-
-    if game.winner and get_websocket_from_token(game.winner) is player1:
-        await update_score(score['X'] + 1, score['O'])
-    else:
-        await update_score(score['X'], score['O'] + 1)
-
-async def handle_cell_clicked(websocket, message):
-    id = message['board-id']
-    cell = message['cell']
-    row = int(cell['r'])
-    col = int(cell['c'])
-
-    logging.debug(f'Handling cell click {row}, {col} on board {id}')
-
-    player = get_player_token(websocket)
-    if not player:
-        logging.error(f'Player for websocket {websocket} not found')
-        return
-
-    board = boards.get(id)
-    if not board:
-        logging.error(f'Board with id {id} not found')
-        return
-
-    game = board['game']
-
-    done = game.next_turn(player, row, col)
-    data = {
-        'piece-placed':  {
-            'board-id': id,
-            'cell': cell,
-            'piece': player
-        }
-    }
-    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
-
-    if done:
-        await end_match(id, game)
-    else:
-        await start_turn(id, game.turn)
-
-    if max_boards_enabled():
-        num_active = get_num_active_boards()
-        logging.debug(f'# of active boards: {num_active}, # of max boards: {max_boards}')
-        if num_active < max_boards:
-            await start_new_match()
-        else:
-            logging.info(f'Max number of boards ({max_boards}) reached')
-    else:
-        await start_new_match()
-
-# Oh lord
-async def check_for_expired_turns():
-    while True:
-        await asyncio.sleep(0.1)
-        for board_id in boards:
-            match = boards[board_id]
-            game = match['game']
-
-            if not game.over and 'turn_expires' in match and datetime.datetime.now() >= match['turn_expires']:
-                logging.debug(f'Skipping turn for player {game.turn} on match {board_id}')
-                next_turn_piece = 'O' if game.turn == 'X' else 'X'
-                game.turn = next_turn_piece
-                asyncio.ensure_future(start_turn(board_id, next_turn_piece))
-
-async def start_turn(board_id, game_piece):
-    logging.debug(f'Starting turn for {game_piece} on board {board_id}')
-
-    if turn_limits_enabled():
-        turn_expires = datetime.datetime.now() + datetime.timedelta(seconds=turn_time_limit)
-        boards[board_id]['turn_expires'] = turn_expires
-
-    data = {
-        'board-turn-changed': {
-            'board-id': board_id,
-            'turn': game_piece,
-            'time-limit-ms': turn_time_limit * 1000
-        }
-    }
-
-    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
-
-async def start_new_match():
-    global latest_id
-    logging.info('Starting new match')
-
-    game = TicTacToe(turn=random_piece())
-    latest_id = latest_id + 1
-    boards[latest_id] = {'game': game}
-
-    data = {
-        'board-started': {
-            'board-id': latest_id
-        }
-    }
-    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
-    await start_turn(latest_id, game.turn)
-
-async def add_player(websocket, player):
-    data = {
-        'game-started': {
-            'player-piece': player
-        }
-    }
-    await websocket.send(json.dumps(data))
-
-async def end_game():
-    global score, player1, player2
-
-    if score['X'] > score['O']:
-        winner = 'X'
-    elif score['O'] > score['X']:
-        winner = 'O'
-    else:
-        winner = 'tie'
-
-    data = {
-        'game-ended': {
-            'winner':  winner
-        }
-    }
-
-    logging.info(f'Overall winner: {winner}')
-    await asyncio.wait([ws.send(json.dumps(data)) for ws in connected])
-    initialize_data()
-
-async def handle_message(websocket, message):
-    if message['cell-clicked']:
+    async def match_me(self, ws):
+        logger.info(f'Player requests match')
         try:
-            await handle_cell_clicked(websocket, message['cell-clicked'])
-        except Exception as e:
-            logging.exception(e)
+            await self.match_maker.connect(ws)
+        finally:
+            await self.match_maker.disconnect(ws)
 
-async def connection_handler(websocket, path):
-    connected.add(websocket)
+def create_connection_handler(controller):
+    async def connection_handler(ws, path):
+        try:
+            if path == '/match-me':
+                await controller.match_me(ws)
+            else:
+                raise Exception(f'Unknown route: {path}')
+        except Exception:
+            logging.exception('Connection error')
+        finally:
+            logger.info(f'Closing connection')
+            ws.close()
+    return connection_handler
 
-    try:
-        await asyncio.wait([ws.send('Hello!') for ws in connected])
-        global player1, player2
+if __name__ == '__main__':
+    logging.basicConfig(filename='log.txt', filemode='w', format='%(levelname)s (%(asctime)s): %(message)s', level=logging.INFO)
 
-        if not player1:
-            logging.info(f'Player1 (X) has joined ({websocket})')
-            player1 = websocket
-            await add_player(websocket, 'X')
-            
-        elif not player2:
-            logging.info(f'Player2 (O) has joined ({websocket})')
-            player2 = websocket
-            await add_player(websocket, 'O')
-        else:
-            # observer
-            pass
-
-        if player1 and player2:
-            await start_new_match()
-
-        logging.debug('Waiting for messages')
-        async for message in websocket:
-            logging.debug('Message received')
-            data = json.loads(message)
-            await handle_message(websocket, data)
-    finally:
-        logging.info(f'Websocket {websocket} disconnecting')
-        connected.remove(websocket)
-        if websocket is player1:
-            logging.info('Player1 has left. Ending game now...')
-            player1 = None
-            await end_game()
-        elif websocket is player2:
-            logging.info('Player2 has left. Ending game now...')
-            player2 = None
-            await end_game()
-
-
-start_server = websockets.serve(connection_handler, '0.0.0.0', 8765)
-initialize_data()
-asyncio.get_event_loop().run_until_complete(start_server)
-
-if turn_limits_enabled():
-    asyncio.ensure_future(check_for_expired_turns())
-
-asyncio.get_event_loop().run_forever()
+    controller = Controller()
+    start_server = websockets.serve(create_connection_handler(controller), '0.0.0.0', 8765)
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
