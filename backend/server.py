@@ -41,7 +41,7 @@ class Controller:
 def create_connection_handler(controller):
     async def connection_handler(ws, path):
         try:
-            if path == '/match-me':
+            if path.endswith('/match-me'):
                 await controller.match_me(ws)
             else:
                 raise Exception(f'Unknown route: {path}')
