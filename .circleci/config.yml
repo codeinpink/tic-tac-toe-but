@@ -8,29 +8,28 @@ jobs:
 
     steps:
       - checkout
-      - run:
-          name: Change into backend folder
-          command: cd backend
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "requirements.txt" }}
+            - v1-dependencies-{{ checksum "backend/requirements.txt" }}
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
       - run:
           name: install dependencies
           command: |
+            cd backend
             python3 -m venv venv
             . venv/bin/activate
             pip install -r requirements.txt
       - save_cache:
           paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+            - ./backend/venv
+          key: v1-dependencies-{{ checksum "backend/requirements.txt" }}
       - run:
           name: run tests
           command: |
+            cd backend
             . venv/bin/activate
             python -m unittest
       - store_artifacts:
-          path: test-reports
+          path: ./backend/test-reports
           destination: test-reports
