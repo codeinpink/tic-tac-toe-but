@@ -9,4 +9,8 @@ export class WSClient {
   send (data) {
     this.ws.send(JSON.stringify(data))
   }
+
+  disconnect () {
+    this.ws.close()
+  }
 }
