@@ -1,8 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Provider } from 'react-redux'
-import { createStore } from 'redux'
-import { rootReducer } from './reducers'
+import { connect } from 'react-redux'
 import { DebugEvents } from './DebugEvents'
 import { MatchStatus } from './MatchStatus'
 import { Boards } from './Boards'
@@ -11,13 +9,13 @@ import { WSClient } from './wsclient'
 
 const wsURL = process.env.REACT_APP_WS_SERVER
 
-export class Game extends React.Component {
+class GamePresentation extends React.Component {
   constructor (props) {
     super(props)
-    this.store = createStore(rootReducer)
     this.wsClient = null
     this.showDebugEvents = props.location.search.includes('debug')
     this.cellClicked = this.cellClicked.bind(this)
+    this.dispatch = props.dispatch
   }
 
   componentDidMount () {
@@ -32,7 +30,7 @@ export class Game extends React.Component {
         }
         const action = msgToAction(json)
         if (action !== null) {
-          this.store.dispatch(action)
+          this.dispatch(action)
         } else {
           console.warn('Unknown message', msg)
         }
@@ -53,15 +51,13 @@ export class Game extends React.Component {
   }
 
   render () {
-    return <Provider store={this.store}>
-      <div className="app">
-        <div>
-          <MatchStatus />
-        </div>
-        <Boards cellClicked={this.cellClicked} />
-        {this.showDebugEvents && <DebugEvents />}
+    return (<div className="app">
+      <div>
+        <MatchStatus />
       </div>
-    </Provider>
+      <Boards cellClicked={this.cellClicked} />
+      {this.showDebugEvents && <DebugEvents />}
+    </div>)
   }
 
   componentWillUnmount () {
@@ -69,8 +65,11 @@ export class Game extends React.Component {
   }
 }
 
-Game.propTypes = {
+GamePresentation.propTypes = {
+  dispatch: PropTypes.func.isRequired,
   location: PropTypes.shape({
     search: PropTypes.string.isRequired
   }).isRequired
 }
+
+export const Game = connect()(GamePresentation)
