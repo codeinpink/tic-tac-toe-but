@@ -37,8 +37,8 @@ const Component = ({boards, cellClicked, playerPiece}) => {
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  boards: state.boards,
-  playerPiece: state.playerPiece
+  boards: state.game.boards,
+  playerPiece: state.game.playerPiece
 })
 
 export const Boards = connect(

@@ -76,7 +76,7 @@ const boards = (state = [], action) => {
   }
 }
 
-export const rootReducer = combineReducers({
+export const reducer = combineReducers({
   score,
   bannerMsg,
   boards,

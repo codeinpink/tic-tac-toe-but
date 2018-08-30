@@ -26,9 +26,9 @@ Component.propTypes = {
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  curScore: state.score,
-  playerPiece: state.playerPiece,
-  bannerMsg: state.bannerMsg
+  curScore: state.game.score,
+  playerPiece: state.game.playerPiece,
+  bannerMsg: state.game.bannerMsg
 })
 
 export const MatchStatus = connect(
