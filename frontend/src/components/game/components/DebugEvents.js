@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { scoreChanged, gameStarted, boardStarted, piecePlaced, boardEnded, gameEnded, boardTurnChanged } from './actions'
+import { scoreChanged, gameStarted, boardStarted, piecePlaced, boardEnded, gameEnded, boardTurnChanged } from './../actions'
 
 class Component extends React.Component {
   constructor (props) {

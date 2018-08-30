@@ -1,2 +1,2 @@
-export { Game } from './Game'
+export { Game } from './components/Game'
 export { reducer } from './reducers'

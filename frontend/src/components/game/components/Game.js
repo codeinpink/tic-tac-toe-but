@@ -4,8 +4,8 @@ import { connect } from 'react-redux'
 import { DebugEvents } from './DebugEvents'
 import { MatchStatus } from './MatchStatus'
 import { Boards } from './Boards'
-import { msgToAction } from './msg-to-action'
-import { WSClient } from './wsclient'
+import { msgToAction } from '../msg-to-action'
+import { WSClient } from '../wsclient'
 
 const wsURL = process.env.REACT_APP_WS_SERVER
 

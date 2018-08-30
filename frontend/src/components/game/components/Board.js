@@ -1,9 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { none, some } from '../../util/option'
+import { none, some } from '../../../util/option'
 
 import './Board.css'
-import { groupBy } from '../../util/groupby'
+import { groupBy } from '../../../util/groupby'
 import { TimeBar } from './TimeBar'
 
 const timerRefreshMs = 20
