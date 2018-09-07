@@ -1,6 +1,10 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { Board } from './Board'
+import {
+  boardsSelector,
+  playerPieceSelector
+} from '../selectors'
 import './Boards.css'
 
 const Component = ({boards, cellClicked, playerPiece}) => {
@@ -37,8 +41,8 @@ const Component = ({boards, cellClicked, playerPiece}) => {
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  boards: state.game.boards,
-  playerPiece: state.game.playerPiece
+  boards: boardsSelector(state),
+  playerPiece: playerPieceSelector(state)
 })
 
 export const Boards = connect(

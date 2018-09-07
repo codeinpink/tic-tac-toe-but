@@ -1,7 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import './MatchStatus.css'
 import { connect } from 'react-redux'
+import {
+  playerPieceSelector,
+  scoreSelector,
+  bannerSelector
+} from '../selectors'
+import './MatchStatus.css'
 
 const Component = ({curScore, playerPiece, bannerMsg}) => {
   return (
@@ -26,9 +31,9 @@ Component.propTypes = {
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  curScore: state.game.score,
-  playerPiece: state.game.playerPiece,
-  bannerMsg: state.game.bannerMsg
+  curScore: scoreSelector(state),
+  playerPiece: playerPieceSelector(state),
+  bannerMsg: bannerSelector(state)
 })
 
 export const MatchStatus = connect(
