@@ -1,10 +1,11 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
 import { DebugEvents } from './DebugEvents'
 import { MatchStatus } from './MatchStatus'
 import { Boards } from './Boards'
-import { msgToAction } from '../msg-to-action'
+import { actionFromServer } from '../actions'
 import { WSClient } from '../wsclient'
 
 const wsURL = process.env.REACT_APP_WS_SERVER
@@ -15,7 +16,7 @@ class GamePresentation extends React.Component {
     this.wsClient = null
     this.showDebugEvents = props.location.search.includes('debug')
     this.cellClicked = this.cellClicked.bind(this)
-    this.dispatch = props.dispatch
+    this.onServerMessage = props.onServerMessage
   }
 
   componentDidMount () {
@@ -28,12 +29,7 @@ class GamePresentation extends React.Component {
         } catch (e) {
           return
         }
-        const action = msgToAction(json)
-        if (action !== null) {
-          this.dispatch(action)
-        } else {
-          console.warn('Unknown message', msg)
-        }
+        this.onServerMessage(json)
       }
     )
   }
@@ -66,10 +62,14 @@ class GamePresentation extends React.Component {
 }
 
 GamePresentation.propTypes = {
-  dispatch: PropTypes.func.isRequired,
+  onServerMessage: PropTypes.func,
   location: PropTypes.shape({
     search: PropTypes.string.isRequired
   }).isRequired
 }
 
-export const Game = connect()(GamePresentation)
+const mapDispatchToProps = dispatch => ({
+  onServerMessage: bindActionCreators(actionFromServer, dispatch)
+})
+
+export const Game = connect(null, mapDispatchToProps)(GamePresentation)

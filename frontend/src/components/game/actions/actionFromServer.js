@@ -1,6 +1,6 @@
-import * as actions from './actions'
+import * as actions from './gameActions'
 
-export function msgToAction (msg) {
+export function actionFromServer (msg) {
   const msgId = Object.keys(msg)[0]
   const body = msg[msgId]
   switch (msgId) {
